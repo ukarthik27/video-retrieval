@@ -9,7 +9,7 @@ import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def train(trainloader, image_head, text_head, image_optimizer, text_optimizer, criterion):
+def train(trainloader, image_head, text_head, image_optimizer, text_optimizer, criterion, only_image=False):
     image_head.train()
     text_head.train()
     train_loss = 0
@@ -23,7 +23,8 @@ def train(trainloader, image_head, text_head, image_optimizer, text_optimizer, c
         loss = criterion(image_embedding, text_embedding, batch["labels"].to(device))
         loss.backward()
         image_optimizer.step()
-        text_optimizer.step()
+        if not only_image:
+            text_optimizer.step()
         train_loss += loss.item()
         num_samples += batch["labels"].size(0)
 
@@ -61,6 +62,27 @@ def eval(testloader, image_head, text_head, criterion, only_loss=True):
         text_embeddings = np.array(text_embeddings)
         sim_mat = np.dot(image_embeddings, text_embeddings.T)
     return eval_loss, sim_mat
+
+def eval_decomposed(testloader, image_head, text_head, margin=0.1):
+    image_head.eval()
+    text_head.eval()
+    pos_loss, neg_loss = 0, 0
+    pos_samples, neg_samples = 0, 0
+    criterion = torch.nn.CosineEmbeddingLoss(margin=margin, reduction='none')
+    with torch.no_grad():
+        for batch in testloader:
+            image_embedding = image_head(batch["images"].to(device))
+            text_embedding = text_head(batch["texts"].to(device))
+            loss = criterion(image_embedding, text_embedding, batch["labels"].to(device))
+            loss = loss.cpu().numpy()
+            label = batch["labels"].cpu().numpy()
+            pos_loss += np.sum(loss[label == 1])
+            neg_loss += np.sum(loss[label == -1])
+            pos_samples += len(loss[label == 1])
+            neg_samples += len(loss[label == -1])
+    pos_loss /= pos_samples
+    neg_loss /= neg_samples
+    return pos_loss, neg_loss
 
 def proj(dataloader, image_head, text_head, batch_size=32):
     image_head.eval()
