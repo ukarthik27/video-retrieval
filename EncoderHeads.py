@@ -76,24 +76,9 @@ class BiLSTMEncoderHead(torch.nn.Module):
         # The first tensor corresponds to normal LSTM, the second corresponds to reverse LSTM.
         return self.fc(fc_input)
 
-class MeanPoolingEncoderHead(torch.nn.Module):
-    def __init__(self, input_dim, embed_dim=128):
-        super(MeanPoolingEncoderHead, self).__init__()
-
-        self.fc = torch.nn.Sequential(
-            torch.nn.Linear(input_dim, 512),
-            torch.nn.ReLU(),
-            torch.nn.Linear(512, embed_dim),
-            torch.nn.BatchNorm1d(embed_dim)
-        )
-        self.num_parameters = sum([np.prod(params.size()) for params in self.fc.parameters()])
-
-    def forward(self, x):
-        return self.fc(torch.mean(x, dim=2))
-
 class IdentityEncoderHead(torch.nn.Module):
     def __init__(self, input_dim, embed_dim=128):
-        super(Identity, self).__init__()
+        super(IdentityEncoderHead, self).__init__()
 
         self.fc = torch.nn.Identity()
         self.num_parameters = 0

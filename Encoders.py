@@ -7,6 +7,7 @@ import torch
 import torchvision
 from transformers import BertModel
 import timm
+from yolov5.models.yoloE import BaseModel, DetectionModel,DetectMultiBackend
 
 
 class InceptionV3Encoder(torch.nn.Module):
@@ -52,6 +53,35 @@ class ResNetEncoder(torch.nn.Module):
     def forward(self, x):
         return self.resnet(x)
 
+class YoloEncoder(BaseModel):
+    # YOLOv5 classification model
+    def __init__(self, cfg='yolov5s.yaml', model=None, embed_size=300, cutoff=-1, freeze_yolo_layers=True, freeze_embedding_layers=False):  # yaml, model, number of classes, cutoff index
+        super().__init__()
+        model = DetectionModel()
+        self._from_detection_model(model, cutoff, freeze_yolo_layers, freeze_embedding_layers) if model is not None else self._from_yaml(cfg)
+        self.output_size = self.model[-1].cv2.conv.out_channels*10*10
+        self.num_parameters = sum([np.prod(params.size()) for params in self.model.parameters()])
+
+    def _from_detection_model(self, model, cutoff=10, freeze_yolo_layers=True, freeze_embedding_layers=False):
+        # Create a YOLOv5 classification model from a YOLOv5 detection model
+        if isinstance(model, DetectMultiBackend):
+            model = model.model  # unwrap DetectMultiBackend
+        model.model = model.model[:cutoff]
+        self.model = model.model
+        self.stride = model.stride
+
+        for layer in model.model:
+            layer.requires_grad=False
+
+    def forward(self, x):
+        x = self.model(x)
+        #x = torch.flatten(x, start_dim=1)
+        return x
+
+    def _from_yaml(self, cfg):
+        # Create a YOLOv5 classification model from a *.yaml file
+        self.model = None
+
 class BertEncoder(torch.nn.Module):
     def __init__(self):
         super(BertEncoder, self).__init__()
@@ -77,6 +107,7 @@ class GloVeEncoder(torch.nn.Module):
         self.num_parameters = 0
 
     def forward(self, embeddings):
+        self.output_size = [embeddings.shape[1], embeddings.shape[2]]
         return self.glove(embeddings)
 
 def Encoder(name):
@@ -86,6 +117,8 @@ def Encoder(name):
         return XceptionEncoder()
     elif name == "ResNet":
         return ResNetEncoder()
+    elif name == "YOLO":
+        return YoloEncoder()
     elif name == "BERT":
         return BertEncoder()
     elif name == "GloVe":

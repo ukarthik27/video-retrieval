@@ -9,20 +9,23 @@ import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def train(trainloader, image_head, text_head, image_optimizer, text_optimizer, criterion, only_image=False):
+def train(trainloader, image_head, text_head, image_optimizer, text_optimizer, criterion, only_image=False, only_text=False):
     image_head.train()
     text_head.train()
     train_loss = 0
     num_samples = 0
 
     for batch in trainloader:
-        image_optimizer.zero_grad()
-        text_optimizer.zero_grad()
+        if not only_text:
+            image_optimizer.zero_grad()
+        if not only_image:
+            text_optimizer.zero_grad()
         image_embedding = image_head(batch["images"].to(device))
         text_embedding = text_head(batch["texts"].to(device))
         loss = criterion(image_embedding, text_embedding, batch["labels"].to(device))
         loss.backward()
-        image_optimizer.step()
+        if not only_text:
+            image_optimizer.step()
         if not only_image:
             text_optimizer.step()
         train_loss += loss.item()
