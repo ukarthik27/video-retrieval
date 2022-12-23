@@ -11,3 +11,5 @@
 4. Preprocessors.py, EncoderHead.py, Encoders.py and utils.py contain supporting code for the notebooks. These scripts contains the classes developed for the custom models and functions to support these models.
 
 5. Data_preparation.ipynb consist of the code to prepare the dataset
+
+The nocaps dataset used for training and the MSRVTT dataset used for doing the video search are here: https://drive.google.com/drive/folders/1w8Cua9_l54ghqayMm3RyVFqtk9ClnQX5?usp=share_link
