@@ -11,20 +11,18 @@ databases with text input
 2. Experimented with the efficacy of Inception, Xception, ResNet and YOLO for Image Encoders and BERT
 vs GloVe for Text Encoders in addition to hyperparameter tuning.
 
-### Training of Dual encoders
-
-<img src="https://github.com/ukarthik27/video-retrieval/blob/master/Training.png" width="350" height="450" />
-
-
 ## Result
 
 ### Best model
 
-<img src="https://github.com/ukarthik27/video-retrieval/blob/master/bestmodel.png" />
+<img src="https://github.com/ukarthik27/video-retrieval/blob/master/bestmodel.png"  width="300" />
 
 1. Enabled zero shot learning with accuracy of 65% on MSRVTT dataset with training on Nocaps dataset.
 2. Enabled quicker comparison of embeddings by Integrating Miluvs database to compare embeddings of
 image-caption sampled from video with the input query
+
+### Training of Dual encoders
+<img src="https://github.com/ukarthik27/video-retrieval/blob/master/Training.png" width="350" height="450" />
 
 ### Constructing Milvus vector database
 <img src="https://github.com/ukarthik27/video-retrieval/blob/master/DB Load.png" width="150" height="300" />
